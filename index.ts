@@ -199,6 +199,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 async function runServer() {
   const transport = new StdioServerTransport();
+
+  // Signal handlers
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+
+  async function shutdown() {
+    console.log('Shutting down...');
+    await transport.close();
+    await server.close();
+    process.exit(0);
+  }
+
   await server.connect(transport);
 }
 
