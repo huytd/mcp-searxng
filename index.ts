@@ -8,6 +8,7 @@ import {
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import { NodeHtmlMarkdown } from 'node-html-markdown';
+import process from "node:process";
 
 const WEB_SEARCH_TOOL: Tool = {
   name: "searxng_web_search",
@@ -209,8 +210,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
+async function stopServer(transport: StdioServerTransport) {
+  console.log("Shutting down server...");
+  await transport.close();
+  await server.close();
+  process.exit(0);
+}
+
 async function runServer() {
   const transport = new StdioServerTransport();
+
+  process.on('SIGTERM', () => stopServer(transport));
+  process.on('SIGINT', () => stopServer(transport));
+
   await server.connect(transport);
 }
 
